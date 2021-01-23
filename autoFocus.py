@@ -2,19 +2,25 @@
 """
 Created on Sat Jan 23 16:44:03 2021
 
+When this script becomes .exe thx to pyinstaller, may be detected by the system
+as TROJAN, I've downgraded pyinstaller to 3.4.
+Making this .exe as --one-file may be catched as TROJAN too.
+This needs a self signed certificated
+https://stackoverflow.com/questions/43777106/program-made-with-pyinstaller-now-seen-as-a-trojan-horse-by-avg
 @author: SERGI
 """
 from time import sleep
 from win32api import MonitorFromPoint, GetCursorPos, keybd_event
 from win32gui import GetForegroundWindow, ShowWindow, SetForegroundWindow
 from win32con import KEYEVENTF_KEYUP
+from argparse import ArgumentParser
 
 ALT = 0x09
+F = 1
 
 
 def monitorWhereMousseIs():
-    x, y = GetCursorPos()
-    return str(MonitorFromPoint((x, y)))
+    return str(MonitorFromPoint(GetCursorPos()))
 
 
 def getActiveWindow():
@@ -34,8 +40,23 @@ def pressAlt():
     keybd_event(ALT, 0, KEYEVENTF_KEYUP, 0)
 
 
-current_monitor = monitorWhereMousseIs()
+ap = ArgumentParser()
+ap.add_argument("-f", "--frecuency", required=False,
+                help="frecuency each iteration occurs (in s)")
 
+ap.add_argument("-u", "--uninstall", required=False,
+                help="delete .bat file from auto-start folder")
+
+ap.add_argument("-u", "--autostart", required=False,
+                help="set autoFocus.bat in auto-start folder")
+
+args = vars(ap.parse_args())
+
+if args["frecuency"] is not None:
+    F = float(args["frecuency"])
+
+
+current_monitor = monitorWhereMousseIs()
 monitors = {}
 monitors[monitorWhereMousseIs()] = getActiveWindow()
 
@@ -47,4 +68,5 @@ while(True):
             showMainWindowFromMonitor(monitors[monitorWhereMousseIs()])
     else:
         monitors[monitorWhereMousseIs()] = getActiveWindow()
-    sleep(1)
+    print(monitors)
+    sleep(F)
